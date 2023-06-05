@@ -1,148 +1,159 @@
 package com.example.courtreservationapp.profile
 
+import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.ContentResolver
+import android.content.ContentValues
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.provider.MediaStore
+import android.util.Log
 import android.widget.Toast
-import androidx.core.content.edit
+import androidx.activity.ComponentActivity
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.courtreservationapp.R
-import com.example.courtreservationapp.data.Skill
 import com.example.courtreservationapp.data.Sport
 import com.example.courtreservationapp.data.User
+import com.example.courtreservationapp.data.Utils
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.firestore.util.Util
 import com.google.firebase.ktx.Firebase
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.firestore.ktx.toObject
-import java.io.File
+import es.dmoral.toasty.Toasty
 import java.io.FileDescriptor
-import java.io.FileInputStream
-import java.io.FileOutputStream
 import java.io.IOException
 
-@Suppress("UNCHECKED_CAST")
 class ProfileViewModel : ViewModel() {
-    private val db = Firebase.firestore
+    private var currentUser: User? = null
+    private var profileImageUri: Uri? = null
+    private var db = Firebase.firestore
+    var showDialog by mutableStateOf(false)
+    var selectedImage = MutableLiveData<Uri?>(null)
+    private lateinit var getReservationsForUserFromDatabase : (String)->Unit
 
-    private val image = MutableLiveData<Bitmap>()
-    val name = MutableLiveData<String>()
-    val nick = MutableLiveData<String>()
-    val age = MutableLiveData<Int>()
-    val sport = MutableLiveData<String>()
-    val skill = MutableLiveData<Map<String, String>>()
-    val objective = MutableLiveData<String>()
-    val achievement = MutableLiveData<String>()
-    val description = MutableLiveData<String>()
+    private lateinit var resultLauncher: ActivityResultLauncher<Intent>
+    private lateinit var contentResolver: ContentResolver
+    lateinit var sports: LiveData<List<Sport>>
+    fun initialize(activity: ComponentActivity, currentUser: User?,getReservationsForUserFromDatabase:(String)->Unit) {
+        this.currentUser = currentUser
+        val user = currentUser
+        val uri = Uri.parse(user?.imageUri)
+        var path = uri.path
+        this.getReservationsForUserFromDatabase = getReservationsForUserFromDatabase
 
-    private val user = MutableLiveData<User>().apply {
-        Firebase.auth.currentUser?.uid?.let{
-            db.collection("Users").document(it).addSnapshotListener { result, error ->
-                if (error == null && result != null) {
-                    value = result.toObject<User>()
+        if (path != null && path != "") {
+            path = path.substring(path.indexOf("external/")).split('/').subList(0, 4)
+                .joinToString("/") { it }
+            val builder = uri.buildUpon()
+            builder.path(path)
+            builder.authority("media")
+            selectedImage.value = builder.build()
+        }
 
-                    name.value = value?.fullName
-                    nick.value = value?.nickName
-                    age.value = value?.age
-                    sport.value = value?.sport
-                    skill.value = value?.skillLevel
-                    objective.value = value?.objective
-                    achievement.value = value?.achievements
-                    description.value = value?.description
-                }
+        contentResolver = activity.contentResolver
+        resultLauncher = activity.registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            val data: Intent? = result.data
+            var imageUri: Uri? = profileImageUri
+
+            if (result.resultCode != Activity.RESULT_OK || data == null) {
+                return@registerForActivityResult
+            } else if (imageUri == null) {
+                imageUri = data.data
+                user?.imageUri = imageUri.toString()
             }
-        }
-    }
-    val sports = MutableLiveData<List<Sport>>().apply {
-        db.collection("Sports").addSnapshotListener { result, error ->
-            if (error == null && result != null)
-                value = result.documents.map {
-                    Sport(it.id, it.data?.get("name") as Map<String, String>)
-                }
-        }
-    }
-    val skills = MutableLiveData<List<Skill>>().apply {
-        db.collection("SkillLevel").addSnapshotListener { result, error ->
-            if (error == null && result != null)
-                value = result.documents.map {
-                    Skill(it.id, it.data?.get("text") as Map<String, String>)
-                }
+            selectedImage.value = imageUri
+            profileImageUri = null
+
         }
     }
 
-    fun getImage(ctx: Context): LiveData<Bitmap> {
-        Firebase.auth.currentUser?.uid?.let {
-            val sharedPrefs = ctx.getSharedPreferences("user_saved", Context.MODE_PRIVATE)
-            val image = sharedPrefs.getString(it, null)
-
-            this.image.value = image?.let { BitmapFactory.decodeStream(FileInputStream(File(image))) }
-        }
-
-        return this.image
+    fun setListSport(listSport: MutableLiveData<List<Sport>>) {
+        sports = listSport
     }
 
-    fun setName(value: String) { name.value = value }
-    fun setNick(value: String) { nick.value = value }
-    fun setAge(value: Int?) { age.value = value ?: 0 }
-    fun setSport(value: String) { sport.value = value }
-    fun setSkill(value: Map<String, String>) { skill.value = value }
-    fun setObjective(value: String) { objective.value = value }
-    fun setAchievement(value: String) { achievement.value = value }
-    fun setDescription(value: String) { description.value = value }
-    fun setImage(image: Bitmap?) { this.image.value = image }
-
-    fun saveUser(ctx: Context, user: User, image: Bitmap?, context: Context): Boolean {
-        Firebase.auth.currentUser?.uid?.let {
-            db.collection("Users").document(it).set(user)
-                .addOnSuccessListener {
-                    Toast.makeText(context, context.getString(R.string.profile_updated_successfully), Toast.LENGTH_SHORT).show()
-                }
-                .addOnFailureListener {
-                    Toast.makeText(context, context.getString(R.string.profile_update_failed), Toast.LENGTH_SHORT).show()
-                }
-
-            this.user.value = user
-
-            val directory = File(ctx.cacheDir, "images")
-            directory.mkdirs()
-
-            val file =  File(directory, "profileImage${it}.jpg")
-
-            val output = FileOutputStream(file)
-            image?.compress(Bitmap.CompressFormat.JPEG, 100, output)
-            output.close()
-
-            val sharedPrefs = ctx.getSharedPreferences("user_saved", Context.MODE_PRIVATE)
-            sharedPrefs.edit {
-                putString(it, file.absolutePath)
-                apply()
-            }
-
-            return true
-        }
-
-        return false
+    fun showImageSelectionDialog() {
+        showDialog = true
     }
 
-    fun toBitmap(ctx: Context, imageUri: Uri?): Bitmap? {
-        if (imageUri == null)
-            return null
+    fun getDatabaseFirebase(): FirebaseFirestore {
+        return db
+    }
 
+    fun dismissImageSelectionDialog() {
+        showDialog = false
+    }
+
+    fun openCamera() {
+        val values = ContentValues()
+        values.put(MediaStore.Images.Media.TITLE, "ProfileImage")
+        values.put(MediaStore.Images.Media.DESCRIPTION, "Camera")
+
+        profileImageUri = contentResolver.insert(
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            values
+        )
+
+        val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, profileImageUri)
+        resultLauncher.launch(cameraIntent)
+    }
+
+    fun openGallery() {
+        val galleryIntent = Intent(
+            Intent.ACTION_PICK,
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        )
+        resultLauncher.launch(galleryIntent)
+    }
+
+    fun toBitmap(imageUri: Uri?): Bitmap? {
+        if (imageUri == null) return null
         try {
-            val parcelFileDescriptor = ctx.contentResolver.openFileDescriptor(imageUri, "r")
+            val parcelFileDescriptor = contentResolver.openFileDescriptor(imageUri, "r")
             val fileDescriptor: FileDescriptor = parcelFileDescriptor!!.fileDescriptor
-
             val image = BitmapFactory.decodeFileDescriptor(fileDescriptor)
-
             parcelFileDescriptor.close()
-
             return image
         } catch (e: IOException) {
             e.printStackTrace()
         }
-
         return null
+    }
+
+    @SuppressLint("RestrictedApi")
+    fun saveUser(context: Context, user: User) {
+        user.imageUri = selectedImage.value?.toString() ?: ""
+        Utils().saveLocalStorageUser(context, user)
+        if (!user.isDefaultUser() && !user.isDeafultNickName()) {
+            var idUser = if (user.getIDUser() != null) user.getIDUser().orEmpty() else Util.autoId()
+            db.collection("Users").document(idUser)
+                .set(user.toDatabase(toBitmap(selectedImage.value)))
+                .addOnSuccessListener {
+                    getReservationsForUserFromDatabase(idUser)
+                    Toasty.success(context, "User Updated !!!", Toast.LENGTH_SHORT, true).show()
+                    Utils().setIDLocalStorageUser(context, idUser)
+                    currentUser?.setIDUser(idUser)
+                }
+                .addOnFailureListener { exception ->
+                    Log.d("User Firestore", "Error Update User, error : " + exception)
+                    Toasty.error(context, "Error User Updating ...", Toast.LENGTH_SHORT, true)
+                        .show()
+                }
+        }
+    }
+
+    fun setUser(user: User) {
+        this.currentUser = user
     }
 }

@@ -1,35 +1,53 @@
 package com.example.courtreservationapp.reservations
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.courtreservationapp.data.Court
 import com.example.courtreservationapp.data.Reservation
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.firestore.ktx.toObject
-import com.google.firebase.ktx.Firebase
+import com.example.courtreservationapp.data.Sport
+import com.example.courtreservationapp.data.TimeSlot
+import com.example.courtreservationapp.data.User
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 class ReservationsViewModel : ViewModel() {
-    private val db = Firebase.firestore
-    var loading = MutableLiveData(true)
 
-    var reservations = MutableLiveData<List<Reservation>>().apply {
-        Firebase.auth.currentUser?.uid?.let { id ->
-            db.collection("Reservations").addSnapshotListener { snapshot, e ->
-                loading.value = true
+    var userCurrent: MutableLiveData<User> = MutableLiveData()
+    var reservations: MutableLiveData<List<Reservation>> = MutableLiveData()
+    var timeSlots: MutableLiveData<List<TimeSlot>> = MutableLiveData()
+    var courts: MutableLiveData<List<Court>> = MutableLiveData()
+    var sports: MutableLiveData<List<Sport>> = MutableLiveData()
 
-                if(e == null) {
-                    value = snapshot!!.documents.map {
-                        val tmp = it.toObject<Reservation>()!!
-                        tmp.id = it.id
-                        tmp.listTimeSlot = tmp.listTimeSlot.sortedBy{ l -> l.order}.toMutableList()
-                        tmp
-                    }.filter {
-                        it.userID == id
-                    }
-                }
+    fun prepareViewModel(
+        userCurrent: User? = User(),
+        reservations: MutableList<Reservation> = mutableListOf(),
+        courts: List<Court> = listOf(),
+        sports: List<Sport> = listOf(),
+        timeslots: List<TimeSlot> = listOf()
+    ) {
 
-                loading.value = false
-            }
+        this.reservations.value = reservations
+        this.userCurrent.value = userCurrent
+        this.timeSlots.value = timeslots
+        this.courts.value = courts
+        this.sports.value = sports
+    }
+
+    fun getReservations(): LiveData<List<Reservation>> {
+        return reservations
+    }
+
+    fun getReservationsByDate(date: LocalDate): List<Reservation> {
+
+        val reservationsByDate = reservations.value!!.filter {
+            it.date == date.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"))
         }
+
+        return reservationsByDate
+    }
+
+    fun getCourts(): LiveData<List<Court>> {
+        return courts
     }
 }

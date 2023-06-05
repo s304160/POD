@@ -5,62 +5,51 @@
     <string name="fullName">Nome e Cognome</string>
     <string name="nickName">Nickname</string>
     <string name="objective">Obiettivo</string>
+    <string name="physicalCharacteristics">Caratteristiche fisiche</string>
     <string name="skillLevel">Abilità</string>
+    <string-array name="skillOptions">
+        <item>Principiante</item>
+        <item>Intermedio</item>
+        <item>Avanzato</item>
+        <item>Professionista</item>
+    </string-array>
+    <string name="characteristics">Caratteristiche</string>
     <string name="description">Descrizione</string>
     <string name="age">Età</string>
-    <string name="yourReservations">Le Tue Prenotazioni</string>
-    <string name="cancel">Annulla</string>
+    <string name="edit_icon">editIcon</string>
+    <string name="toolbar">toolbar</string>
+    <string name="icon_save_toolbar">Salva</string>
+    <string name="soccer">Calcio</string>
+    <string name="tennis">Tennis</string>
+    <string name="basket">Basket</string>
+    <string name="yourReservations">Tue Prenotazioni</string>
+    <string name="menu_lateral_user_nickname">Nickname Utente</string>
+    <string name="menu_lateral_user_email">Email Utente</string>
+    <string name="menu_lateral_user_fullName">Nome Completo Utente</string>
+    <string name="menu_lateral_option_1">Opzione 1</string>
+    <string name="menu_lateral_option_2">Opzione 2</string>
+    <string name="menu_lateral_option_3">Opzione 3</string>
+    <string name="open">Apri</string>
+    <string name="close">Chiudi</string>
+    <string name="cancel">Cancel</string>
     <string name="ok">Ok</string>
+    <string name="toolbar_icon">Toolbar Icon</string>
+    <string name="additional_requests">Additional Requests</string>
+    <string name="court">Court</string>
+    <string name="time_slot">Time slot</string>
+    <string name="no_bookings_found">No bookings found</string>
+    <string name="modify" translatable="false">MODIFY</string>
+    <string name="delete">DELETE</string>
 
-    <string name="additional_requests">Richieste Aggiuntive</string>
-    <string name="court">Campo</string>
-    <string name="time_slot">Orario</string>
-    <string name="date">Data</string>
-    <string name="no_bookings_found">Nessuna prenotazione</string>
-    <string name="modify">Modifica</string>
-    <string name="delete">ELIMINA</string>
-    <string name="modified">Prenotazione modificata</string>
-    <string name="deleted">Prenotazione cancellata</string>
-    <string name="thanks">Grazie!</string>
-
+    <string name="choose_sportAutoComplete">Seleziona Sport</string>
     <string name="cancellationBookingDescription_part1">Stai cancellando il seguente appuntamento : </string>
+    <string name="cancellationBookingDescription_part2">Sei sicuro di voler cancellare questo appuntamento ? </string>
+    <string name="cancellationBooking_description_court">Info Campo : </string>
+    <string name="cancellationBooking_description_date">Info Data-Timeslot : </string>
+    <string name="cancellationBooking_description_sport">Info Sport : </string>
     <string name="cancellationBooking_button_back">Indietro</string>
     <string name="cancellationBooking_button_confirm">Confermo</string>
-    <string name="rating_title">Lascia una Recensione</string>
-    <string name="insert_review">Commenti aggiuntivi (opzionale)</string>
     <string name="rating_description_step1">Seleziona il campo</string>
     <string name="rating_description_step2">Vota</string>
     <string name="rating_description_step3">Altri Commenti</string>
-    <string name="profile_title">Profilo</string>
-    <string name="change_image">Modifica Foto</string>
-    <string name="favorite_sport">Sport Preferito</string>
-    <string name="achievements">Riconoscimenti</string>
-    <string name="select_image_from">Scegli da:</string>
-    <string name="camera">Fotocamera</string>
-    <string name="gallery">Galleria</string>
-    <string name="choose_a_date">Scegli una data</string>
-    <string name="do_you_want_to_confirm">Sei sicuro?</string>
-    <string name="none">Nessuna</string>
-
-    <string name="home">Home</string>
-    <string name="book_courts">Prenota</string>
-    <string name="rate_courts">Recensioni</string>
-    <string name="sign_in_with_onetap">Sign In con OneTap</string>
-    <string name="email">Email</string>
-    <string name="create_a_new_account">Crea un nuovo account</string>
-    <string name="loading">Caricamento…</string>
-    <string name="profile">Profilo</string>
-    <string name="sign_out">Esci</string>
-    <string name="create_account">Crea Account</string>
-    <string name="reservation_deleted_successfully">Prenotazione cancellata con successo</string>
-    <string name="reservation_deletion_failed">Prenotazione non cancellata</string>
-    <string name="reservation_created_successfully">Prenotazione creata con successo</string>
-    <string name="reservation_creation_failed">Prenotazione non creata</string>
-    <string name="reservation_modified_successfully">Prenotazione modificata con successo</string>
-    <string name="reservation_modification_failed">Prenotazione non modificata</string>
-    <string name="profile_updated_successfully">Profilo aggiornato</string>
-    <string name="profile_update_failed">Profilo non aggiornato</string>
-    <string name="error_user_already_exists">Errore: l\'utente esiste già</string>
-    <string name="error_creation_of_new_user_failed">Errore: creazione utente fallita</string>
-    <string name="username_or_password_not_correct">Email e/o password sbagliati</string>
 </resources>

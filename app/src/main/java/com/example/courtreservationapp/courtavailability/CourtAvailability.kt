@@ -8,13 +8,13 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.with
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -22,37 +22,30 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.intl.Locale
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.courtreservationapp.LoadingAnimation2
-import com.example.courtreservationapp.R
+import androidx.compose.ui.unit.sp
+import com.example.courtreservationapp.data.Court
 import com.example.courtreservationapp.data.Info
+import com.example.courtreservationapp.data.Reservation
 import com.example.courtreservationapp.data.TimeSlot
 import com.example.courtreservationapp.reservations.Day
 import com.example.courtreservationapp.reservations.DaysOfWeekTitle
+import com.example.courtreservationapp.ui.theme.Teal700
 import com.example.courtreservationapp.ui.theme.calendarColors
 import com.kizitonwose.calendar.compose.HorizontalCalendar
 import com.kizitonwose.calendar.compose.rememberCalendarState
@@ -62,102 +55,118 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
-import java.time.format.TextStyle
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ReservationPage() {
-    val lang = Locale.current.language
+fun addDate(
+    date: String,
+    courts: List<Court>?,
+    reservations: List<Reservation>?,
+    timeSlots: List<TimeSlot>?
+): Map<TimeSlot, List<Info>> {
+    val bookedToday = reservations?.filter { it.date == date }
 
-    val viewModel = viewModel(CAViewModel::class.java)
-
-    val loading = viewModel.loading.observeAsState()
-    val sports = viewModel.sports.observeAsState()
-    val sportId = viewModel.sportId.observeAsState()
-
-    val (expanded, setExpanded) = remember {
-        mutableStateOf(false)
-    }
-
-    if (loading.value == true)
-        LoadingAnimation2()
-    else
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = {
-                        Text(
-                            text = stringResource(R.string.choose_a_date),
-                            style = MaterialTheme.typography.headlineLarge
-                        )
-                    },
-                    actions = {
-                        Text(
-                            sports.value?.find {
-                                it.id == sportId.value
-                            }?.name?.get(lang).orEmpty(),
-                            style = MaterialTheme.typography.titleLarge
-                        )
-
-                        Box {
-                            Icon(
-                                Icons.Default.ArrowDropDown,
-                                "Dropdown Icon",
-                                Modifier.clickable { setExpanded(!expanded) }
-                            )
-
-                            DropdownMenu(
-                                expanded,
-                                { setExpanded(!expanded) }
-                            ) {
-                                sports.value?.filter { it.id != sportId.value }?.map {
-                                    DropdownMenuItem(
-                                        { Text(
-                                            it.name[lang]?: it.name["en"]!!,
-                                            style = MaterialTheme.typography.titleLarge
-                                        ) },
-                                        {
-                                            setExpanded(false)
-                                            viewModel.setSportId(it.id)
-                                        }
-                                    )
-                                }
-                            }
-                        }
-                    }
-                )
-            }
-        ) {
-            CourtAvailability(Modifier.padding(it), sportId.value?: "", viewModel)
-        }
+    return timeSlots?.groupBy { it }?.mapValues { timeSlot ->
+        courts?.map { court ->
+            var availableSlot:Boolean = if(bookedToday?.none { it.listTimeSlot?.firstOrNull{it?.id == timeSlot.key.id}!=null && it.court?.name == court.name && it.date == date } ==null) false else true
+            Info(court,availableSlot)
+        } ?: listOf()
+    } ?: mapOf()
 }
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun CourtAvailability(modifier: Modifier = Modifier, sportId: String, viewModel: CAViewModel) {
-    val (visible, setVisible) = remember { mutableStateOf(false) }
-    val (date, setDate) = remember { mutableStateOf(LocalDate.MIN) }
-    val (courtId, setCourtId) = remember { mutableStateOf("") }
-    val (displayGrid, setDisplayGrid) = remember { mutableStateOf(false) }
-    val (availableTs, setAvailableTs) = remember { mutableStateOf(mapOf<TimeSlot, List<Info>>()) }
-    val (selectedTs, setSelectedTs) = remember { mutableStateOf(listOf<String>()) }
-    val available = remember { mutableMapOf<String, Map<TimeSlot, List<Info>>>() }
-    val courts = viewModel.courts.observeAsState()
+fun CourtAvailability(viewModel: CAViewModel) {
+    val (expanded, setExpanded) = remember {
+        mutableStateOf(false)
+    }
+    val (visibleDialogConfirm, setVisibleDialogConfirm) = remember {
+        mutableStateOf(false)
+    }
 
-    val context = LocalContext.current
+    val (sportId, setSportId) = remember {
+        mutableStateOf(1)
+    }
+    val (date, setDate) = remember {
+        mutableStateOf(LocalDate.MIN)
+    }
+    val (courtId, setCourtId) = remember {
+        mutableStateOf(0)
+    }
+    val (displayGrid, setDisplayGrid) = remember {
+        mutableStateOf(false)
+    }
+
+    val (availableTs, setAvailableTs) = remember {
+        mutableStateOf(mapOf<TimeSlot, List<Info>>())
+    }
+    val (selectedTs, setSelectedTs) = remember {
+        mutableStateOf(listOf<Int>())
+    }
+
+    val courts = viewModel.courts.observeAsState()
+    val reservations = viewModel.reservationsCurrentUser.observeAsState()
+    val sports = viewModel.sports.observeAsState()
+    val timeSlots = viewModel.timeslots.observeAsState()
+
+    val available = remember {
+        mutableMapOf<String, Map<TimeSlot, List<Info>>>()
+    }
 
     Column(
-        modifier
+        Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
+        Button(
+            { setExpanded(!expanded) },
+            Modifier
+                .height(60.dp),
+            shape = RectangleShape,
+            colors = ButtonDefaults.buttonColors(
+                Color.Gray,
+                Color.Black
+            )
+        ) {
+            Text(
+                (sports.value?.find { it.id == sportId }?.name ?: "")
+                    .replaceFirstChar { it.uppercase() },
+                Modifier.fillMaxSize(),
+                fontSize = 30.sp,
+                textAlign = TextAlign.Center
+            )
+        }
+        DropdownMenu(expanded, { setExpanded(false) }, Modifier.fillMaxSize()) {
+            sports.value?.filter {
+                it.id != sportId
+            }?.map {
+                DropdownMenuItem(
+                    {
+                        Text(
+                            it.name.replaceFirstChar { it.uppercase() },
+                            Modifier.fillMaxSize(),
+                            fontSize = 30.sp,
+                            textAlign = TextAlign.Center
+                        )
+                    },
+                    {
+                        setSportId(it.id)
+                        setExpanded(false)
+                        setDate(LocalDate.MIN)
+                    }
+                )
+            }
+        }
+
         Calendar(
             Modifier,
-            viewModel,
             date,
             { day ->
                 val dateString = day.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"))
-                val availableTimeSlots = viewModel.addDate(dateString, sportId)
+                val availableTimeSlots = addDate(
+                    dateString,
+                    courts.value?.filter { it.sportID.toInt() == sportId },
+                    reservations.value,
+                    timeSlots.value
+                )
 
                 available[dateString] = availableTimeSlots
 
@@ -187,41 +196,42 @@ fun CourtAvailability(modifier: Modifier = Modifier, sportId: String, viewModel:
         ) {
             if (displayGrid && (transition.totalDurationNanos > 5000 || !transition.isRunning))
                 Details(
-                    Modifier,
-                    availableTs,
-                    selectedTs,
-                    setSelectedTs
-                ) { id ->
-                        setCourtId(id)
-                        setVisible(true)
+                  modifier =   Modifier,
+                  available =   availableTs,
+                  selectedTs =   selectedTs,
+                  setSelectedTs =   setSelectedTs
+                ) { courtID ->
+                    setCourtId(courtID)
+                    setVisibleDialogConfirm(true)
                 }
         }
 
-        if (visible)
+        if (visibleDialogConfirm)
             AlertDialog(
-                { setVisible(false) },
-                {
+                onDismissRequest =  { setVisibleDialogConfirm(false) },
+                confirmButton =  {
                     Button(onClick = {
-                        viewModel.reserve(date, courtId, selectedTs, context)
+                        viewModel.reserve(date, courtId, selectedTs)
                         setSelectedTs(listOf())
                         setDate(LocalDate.MIN)
                         setAvailableTs(mapOf())
-                        setVisible(false)
+                        setVisibleDialogConfirm(false)
                         setDisplayGrid(false)
                     }) {
-                        Text(text = stringResource(id = R.string.ok))
+                        Text(text = "Ok")
                     }
                 },
                 dismissButton = {
-                    Button(onClick = { setVisible(false) }) {
-                        Text(text = stringResource(id = R.string.cancel))
+                    Button(onClick = { setVisibleDialogConfirm(false) }) {
+                        Text(text = "Cancel")
                     }
                 },
                 text = {
-                    Text(text = stringResource(R.string.do_you_want_to_confirm) +
-                            "\n\n" + stringResource(id = R.string.date) + ": $date\n" +
-                            stringResource(id = R.string.court) +
-                            ": ${courts.value?.find { it.id == courtId }?.name}\n"
+                    Text(text = "Do you want to confirm?\n\n" +
+                            "Date: $date\n" +
+                            "Court: ${courts.value?.find { it.id == courtId }?.name}\n"+
+                            "Timeslot : ${timeSlots.value?.filter {ts -> selectedTs.find { it == ts.id}!=null }?.map { it.timeslot }}"
+
                     )
                 },
                 shape = RoundedCornerShape(10)
@@ -232,7 +242,6 @@ fun CourtAvailability(modifier: Modifier = Modifier, sportId: String, viewModel:
 @Composable
 private fun Calendar(
     modifier: Modifier,
-    viewModel: CAViewModel,
     selectedDate: LocalDate,
     onDecorate: (LocalDate) -> Int,
     onSelect: (LocalDate) -> Unit
@@ -258,11 +267,10 @@ private fun Calendar(
                 day.date.isBefore(LocalDate.now().atStartOfDay().toLocalDate()) ||
                 day.position != DayPosition.MonthDate
             )
-                Day(day = day, color = MaterialTheme.colorScheme.background)
+                Day(day = day, color = Color.White)
             else {
-                val color = if (day.date == selectedDate) MaterialTheme.colorScheme.secondary
-                else calendarColors(viewModel.timeSlots.value?.size?: 0, onDecorate(day.date))
-
+                val color = if (day.date == selectedDate) Teal700
+                else calendarColors[onDecorate(day.date)] ?: Color.White
 
                 Day(
                     Modifier.clickable(
@@ -281,10 +289,8 @@ private fun Calendar(
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
                     modifier = Modifier.fillMaxWidth(),
-                    text = it.yearMonth.month
-                        .getDisplayName(TextStyle.FULL, java.util.Locale.getDefault())
-                        .replaceFirstChar { it.uppercase() },
-                    style = MaterialTheme.typography.titleLarge,
+                    text = it.yearMonth.month.name,
+                    style = MaterialTheme.typography.headlineMedium,
                     textAlign = TextAlign.Center
                 )
 
@@ -299,23 +305,23 @@ private fun Calendar(
 private fun Details(
     modifier: Modifier,
     available: Map<TimeSlot, List<Info>>,
-    selectedTs: List<String>,
-    setSelectedTs: (List<String>) -> Unit,
-    reserve: (String) -> Unit
+    selectedTs: List<Int>,
+    setSelectedTs: (List<Int>) -> Unit,
+    reserve: (Int) -> Unit
 ) {
     Row(
         modifier
     ) {
         MyGrid(
-            Modifier.weight(1f),
-            stringResource(id = R.string.time_slot),
-            available.map { map ->
+           modifier =  Modifier.weight(1f),
+           text =  "Time Slots",
+           list = available.map { map ->
                 Info(
                     map.key,
                     map.value.any { it.available }
                 )
             },
-            selectedTs
+            selected = selectedTs
         ) {
             val list = selectedTs.toMutableList()
 
@@ -327,10 +333,10 @@ private fun Details(
 
         if (selectedTs.isNotEmpty())
             MyGrid(
-                Modifier.weight(1f),
-                stringResource(id = R.string.court),
-                available.filter {
-                    it.key.id in selectedTs
+                modifier = Modifier.weight(1f),
+                text = "Courts",
+                list = available.filter { available_unit ->
+                    selectedTs.find {  it === available_unit.key.id} !=null
                 }.values.flatten().groupBy { Pair(it.id, it.text) }.map { map ->
                     Info(
                         map.key.first,
@@ -339,18 +345,19 @@ private fun Details(
                     )
                 }
             ) {
-                reserve(it)
+                if(it!=0)
+                    reserve(it)
             }
     }
 }
 
 @Composable
-fun MyGrid(
-    modifier: Modifier = Modifier,
+private fun MyGrid(
+    modifier: Modifier,
     text: String,
     list: List<Info>,
-    selected: List<String> = listOf(),
-    onSelect: (String) -> Unit
+    selected: List<Int> = listOf(),
+    onSelect: (Int) -> Unit
 ) {
     Column(
         modifier.fillMaxHeight()
@@ -360,7 +367,7 @@ fun MyGrid(
             Modifier
                 .weight(0.2f)
                 .fillMaxSize(),
-            style = MaterialTheme.typography.headlineMedium,
+            fontSize = 25.sp,
             textAlign = TextAlign.Center
         )
 
@@ -383,18 +390,18 @@ fun MyGrid(
 @Composable
 private fun CustomButton(text: String, enabled: Boolean, pressed: Boolean, onSelect: () -> Unit) {
     val color = if (pressed)
-        MaterialTheme.colorScheme.tertiaryContainer
+        Color.Red
     else
-        MaterialTheme.colorScheme.primaryContainer
+        Color.Blue
 
     Button(
         { onSelect() },
         enabled = enabled,
         colors = ButtonDefaults.buttonColors(
             color,
-            MaterialTheme.colorScheme.contentColorFor(color),
-            MaterialTheme.colorScheme.background,
-            MaterialTheme.colorScheme.onBackground
+            Color.White,
+            Color.White,
+            Color.Black
         )
     ) {
         Text(text)

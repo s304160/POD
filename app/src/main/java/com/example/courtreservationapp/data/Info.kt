@@ -1,7 +1,10 @@
 package com.example.courtreservationapp.data
 
+import com.example.courtreservationapp.database.entities.CourtEntity
+import com.example.courtreservationapp.database.entities.TimeSlotEntity
+
 data class Info(
-    val id: String,
+    val id: Int,
     val text: String,
     var available: Boolean
 ) {

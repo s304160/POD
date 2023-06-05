@@ -18,6 +18,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -25,14 +26,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.example.courtreservationapp.LoadingAnimation2
+import com.example.courtreservationapp.MainViewModel
 import com.example.courtreservationapp.R
+import com.example.courtreservationapp.data.Court
 import com.example.courtreservationapp.data.Reservation
+import com.example.courtreservationapp.database.entities.CourtEntity
+import com.example.courtreservationapp.details.DetailsViewModel
+import com.example.courtreservationapp.mainViewModel
 import com.kizitonwose.calendar.compose.HorizontalCalendar
 import com.kizitonwose.calendar.compose.rememberCalendarState
 import com.kizitonwose.calendar.core.CalendarDay
@@ -48,51 +53,54 @@ import java.time.format.TextStyle as javaTextStyle
 
 @Composable
 fun YourReservations(
+    reservationsViewModel: ReservationsViewModel,
+    detailsViewModel: DetailsViewModel,
     navController: NavHostController
 ) {
-    val reservationsViewModel = viewModel(ReservationsViewModel::class.java)
-    val loading = reservationsViewModel.loading.observeAsState()
-    val reservations = reservationsViewModel.reservations.observeAsState()
 
-    val (showedReservations, setShowedReservations) = remember { mutableStateOf<List<Reservation>>(listOf())}
-    val (showReservations, setShowReservations) = remember { mutableStateOf(false) }
+    val reservations = mainViewModel.reservationsCurrentUser.observeAsState().value
+    var (showedReservations, setShowedReservations) = remember { mutableStateOf<List<Reservation>>(listOf())}
 
-    if(loading.value == true)
-        LoadingAnimation2()
-    else
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Text(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(10.dp),
-                text = stringResource(R.string.yourReservations),
-                style = MaterialTheme.typography.headlineLarge,
-                textAlign = TextAlign.Center
-            )
+    val (showReservations, setShowReservations) = remember {
+        mutableStateOf(false)
+    }
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            modifier = Modifier.fillMaxWidth(),
+            text = stringResource(R.string.yourReservations),
+            style = MaterialTheme.typography.headlineLarge,
+            textAlign = TextAlign.Center
+        )
 
 
-            val selectDay: (day: CalendarDay) -> Unit = { day ->
-                run {
-                    val reservationsByDate = reservations.value?.filter {
-                        it.date == day.date.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"))
-                    }
-
-                    setShowReservations(!reservationsByDate.isNullOrEmpty())
-                    setShowedReservations(reservationsByDate!!)
-                }
+        val selectDay: (day: CalendarDay) -> Unit = { day ->
+            run {
+                val tmpReservationForDate  = reservations?.filter { it.date == day.date.format(DateTimeFormatter.ofPattern("dd-MM-yyyy")) }
+                if (tmpReservationForDate!!.isNotEmpty()) {
+                    setShowReservations(true)
+                    setShowedReservations(tmpReservationForDate)
+                } else
+                    setShowReservations(false)
             }
-
-            Calendar(reservations.value, selectDay)
-
-            if (showReservations)
-                ReservationsDetail(showedReservations, navController)
-
         }
+
+
+
+        Calendar(reservations, selectDay)
+
+
+        if (showReservations)
+            ReservationsDetail(showedReservations, navController, detailsViewModel)
+
+
+    }
 }
 
 
 @Composable
 fun Calendar(reservations: List<Reservation>?, selectDay: (CalendarDay) -> Unit) {
+
     val currentMonth = remember { YearMonth.now() }
     val startMonth = remember { currentMonth.minusMonths(12) }      // Adjust as needed
     val endMonth = remember { currentMonth.plusMonths(12) }            // Adjust as needed
@@ -105,6 +113,8 @@ fun Calendar(reservations: List<Reservation>?, selectDay: (CalendarDay) -> Unit)
         firstDayOfWeek = daysOfWeek.first()
     )
 
+
+
     HorizontalCalendar(
         state = state,
         dayContent = { day ->
@@ -112,17 +122,15 @@ fun Calendar(reservations: List<Reservation>?, selectDay: (CalendarDay) -> Unit)
                 .clickable(
                     enabled = true,
                     onClick = { selectDay(day) }
-                ), day, decorate(MaterialTheme.colorScheme.background, day, reservations?: listOf()))
+                ), day, decorate(day, reservations))
         },
         calendarScrollPaged = true,
         monthHeader = {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
                     modifier = Modifier.fillMaxWidth(),
-                    text = it.yearMonth.month
-                        .getDisplayName(javaTextStyle.FULL, Locale.getDefault())
-                        .replaceFirstChar { it.uppercase() },
-                    style = MaterialTheme.typography.titleLarge,
+                    text = it.yearMonth.month.name,
+                    style = MaterialTheme.typography.headlineMedium,
                     textAlign = TextAlign.Center,
                 )
 
@@ -133,13 +141,14 @@ fun Calendar(reservations: List<Reservation>?, selectDay: (CalendarDay) -> Unit)
 }
 
 
-fun decorate(background: Color, day: CalendarDay, reservations: List<Reservation>): Color {
+fun decorate(day: CalendarDay, reservations: List<Reservation>?): Color {
     val date = day.date.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"))
 
-    var color = background
+    var color = Color.White
 
-    if (reservations.map { it.date }.contains(date))
-        color = Color.Green
+    if (reservations != null)
+        if (reservations?.map { it.date }?.contains(date) == true)
+            color = Color.Green
 
     return color
 }
@@ -147,21 +156,17 @@ fun decorate(background: Color, day: CalendarDay, reservations: List<Reservation
 
 @Composable
 fun Day(modifier: Modifier = Modifier, day: CalendarDay, color: Color) {
-    val textColor = if (color != MaterialTheme.colorScheme.background) Color.Black
-    else MaterialTheme.colorScheme.onBackground
-
     Box(
         modifier = modifier
             .aspectRatio(1f)
-            .background(if (day.date.isBefore(LocalDate.now()) && color == Color.Green) MaterialTheme.colorScheme.surfaceVariant
-            else color),
+            .background(color),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = day.date.dayOfMonth.toString(),
-            color = if (day.position == DayPosition.MonthDate) textColor
-            else Color.Gray
+            color = if (day.position == DayPosition.MonthDate) Color.Black else Color.Gray,
         )
+
     }
 }
 
@@ -183,8 +188,10 @@ fun DaysOfWeekTitle(daysOfWeek: List<DayOfWeek>) {
 @Composable
 fun ReservationsDetail(
     reservationsByDate: List<Reservation>,
-    navController: NavHostController
+    navController: NavHostController,
+    detailsViewModel: DetailsViewModel
 ) {
+
     //header
     Row {
         Card(
@@ -199,7 +206,7 @@ fun ReservationsDetail(
                         .weight(2f)
                         .padding(3.dp)
                 ) {
-                    TextColumn(text = stringResource(R.string.court), title = true)
+                    TextColumn(text = stringResource(R.string.court), fontWeight = FontWeight.Bold)
                 }
 
                 Column(
@@ -209,7 +216,7 @@ fun ReservationsDetail(
                 ) {
                     TextColumn(
                         text = stringResource(R.string.time_slot),
-                        title = true
+                        fontWeight = FontWeight.Bold
                     )
                 }
 
@@ -245,10 +252,6 @@ fun ReservationColumns(
     reservation: Reservation?,
     navController: NavHostController
 ) {
-    val enabled = LocalDate.parse(
-        reservation?.date,
-        DateTimeFormatter.ofPattern("dd-MM-yyyy")
-    ).isAfter(LocalDate.now())
 
     Card(
         modifier = Modifier
@@ -287,36 +290,30 @@ fun ReservationColumns(
                     .padding(3.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                if (enabled)
-                    Row {
-                        Icon(
-                            Icons.Rounded.Edit,
-                            contentDescription = "editIcon",
-                            modifier = Modifier
-                                .weight(1f)
-                                .clickable(
-                                    enabled = true,
-                                    onClick = {
-                                        navController.currentBackStackEntry?.savedStateHandle?.set(
-                                            "reservation", reservation!!.id
-                                        )
-                                        navController.navigate("Details")
-                                    }
-                                ),
-                        )
-                        Icon(
-                            Icons.Rounded.Delete, contentDescription = "deleteIcon",
-                            modifier = Modifier
-                                .weight(1f)
-                                .clickable(
-                                    enabled = true,
-                                    onClick = {
-                                        navController.currentBackStackEntry?.savedStateHandle?.set(
-                                            "reservation", reservation?.id
-                                        )
-                                        navController.navigate("DeleteBooking")
-                                    })
-                        )
+                Row {
+                    Icon(
+                        Icons.Rounded.Edit,
+                        contentDescription = "editIcon",
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable(
+                                enabled = true,
+                                onClick = {
+                                    navController.currentBackStackEntry?.savedStateHandle?.set("reservation", reservation)
+                                    navController.navigate("Details")
+                                }
+                            ),
+                    )
+                    Icon(
+                        Icons.Rounded.Delete, contentDescription = "deleteIcon",
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable(enabled = true,
+                                onClick = {
+                                    navController.currentBackStackEntry?.savedStateHandle?.set("reservation", reservation)
+                                    navController.navigate("DeleteBooking")
+                                })
+                    )
                 }
             }
         }
@@ -326,12 +323,13 @@ fun ReservationColumns(
 
 
 @Composable
-fun TextColumn(text: String, title: Boolean = false) {
+fun TextColumn(text: String, fontWeight: FontWeight = FontWeight.Normal) {
     Text(
         modifier = Modifier.fillMaxWidth(),
+        fontSize = 20.sp,
         text = text,
-        style = if (title) MaterialTheme.typography.headlineMedium
-                else MaterialTheme.typography.bodyLarge.copy(fontSize = 20.sp),
+        style = MaterialTheme.typography.bodyMedium,
         textAlign = TextAlign.Center,
+        fontWeight = fontWeight
     )
 }

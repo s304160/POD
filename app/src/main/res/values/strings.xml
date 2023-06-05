@@ -5,61 +5,59 @@
     <string name="fullName">Full Name</string>
     <string name="nickName">Nickname</string>
     <string name="objective">Objective</string>
+    <string name="physicalCharacteristics">Physical Characteristics</string>
     <string name="skillLevel">Skill Level</string>
+    <string-array name="skillOptions">
+        <item>Beginner</item>
+        <item>Intermediate</item>
+        <item>Advanced</item>
+        <item>Professional</item>
+    </string-array>
+    <!--    <string name="beginner">Beginner</string>-->
+    <!--    <string name="intermediate">Intermediate</string>-->
+    <!--    <string name="advanced">Advanced</string>-->
+    <!--    <string name="professional">Professional</string>-->
+    <string name="characteristics">Characteristics</string>
     <string name="description">Description</string>
     <string name="age">Age</string>
+    <string name="edit_icon">editIcon</string>
+    <string name="toolbar">toolbar</string>
+    <string name="icon_save_toolbar">Save</string>
+    <string name="soccer">Soccer</string>
+    <string name="tennis">Tennis</string>
+    <string name="basket">Basket</string>
     <string name="yourReservations">Your Reservations</string>
+    <string name="menu_lateral_user_nickname">User Nickname</string>
+    <string name="menu_lateral_user_email">User Email</string>
+    <string name="menu_lateral_user_fullName">User FullName</string>
+    <string name="menu_lateral_option_1">Option 1</string>
+    <string name="menu_lateral_option_2">Book a Court</string>
+    <string name="menu_lateral_option_3">Option 3</string>
+    <string name="open">Open</string>
+    <string name="close">Close</string>
     <string name="cancel">Cancel</string>
     <string name="ok">OK</string>
+    <string name="toolbar_icon">Toolbar Icon</string>
     <string name="additional_requests">Additional Requests</string>
     <string name="court">Court</string>
-    <string name="time_slot">Time slots</string>
-    <string name="date">Date</string>
+    <string name="time_slot">Time slot</string>
     <string name="no_bookings_found">No bookings found</string>
-    <string name="modify">Modify</string>
+    <string-array name="sports">
+        <item value="1">Soccer</item>
+        <item value="2">Tennis</item>
+        <item value="3">Basket</item>
+    </string-array>
+    <string name="modify" translatable="false">MODIFY</string>
     <string name="delete">DELETE</string>
-    <string name="modified">Reservation Modified</string>
-    <string name="deleted">Reservation Deleted</string>
-    <string name="thanks">Thanks!</string>
-    <string name="cancellationBookingDescription_part1">You are cancelling the following reservation:</string>
+    <string name="choose_sportAutoComplete">Select Sport</string>
+    <string name="cancellationBookingDescription_part1">You are cancelling the following booking : </string>
+    <string name="cancellationBookingDescription_part2">Are you sure want cancel this booking ? </string>
+    <string name="cancellationBooking_description_court">Court Info : </string>
+    <string name="cancellationBooking_description_date">Date-TimeSlot Info : </string>
+    <string name="cancellationBooking_description_sport">Sport Info: </string>
     <string name="cancellationBooking_button_back">Back</string>
-    <string name="rating_title">Rate Your Experience</string>
-    <string name="insert_review">Leave your opinion (optional)</string>
     <string name="cancellationBooking_button_confirm">Confirm</string>
     <string name="rating_description_step1">Select the court</string>
     <string name="rating_description_step2">Rate the court</string>
     <string name="rating_description_step3">Other Comments</string>
-    <string name="profile_title">Your Profile</string>
-    <string name="change_image">Change Image</string>
-    <string name="favorite_sport">Favorite Sport</string>
-    <string name="achievements">Achievements</string>
-    <string name="select_image_from">Select Image From:</string>
-    <string name="camera">Camera</string>
-    <string name="gallery">Gallery</string>
-    <string name="choose_a_date">Choose a Date</string>
-    <string name="do_you_want_to_confirm">Do you want to confirm?</string>
-    <string name="none">None</string>
-    <string name="home">Home</string>
-    <string name="book_courts">Book Courts</string>
-    <string name="rate_courts">Rate Courts</string>
-    <string name="sign_in_with_onetap">Sign In with OneTap</string>
-    <string name="email">Email</string>
-    <string name="create_a_new_account">Create a new account</string>
-    <string name="loading">Loading…</string>
-    <string name="profile">Profile</string>
-    <string name="sign_out">Sign Out</string>
-    <string name="create_account">Create Account</string>
-
-    <string name="web_client_id" translatable="false">489970940012-rr7g9e3olq769rar8eqb01hbuk1edr61.apps.googleusercontent.com</string>
-    <string name="reservation_deleted_successfully">Reservation deleted successfully</string>
-    <string name="reservation_deletion_failed">Reservation deletion failed</string>
-    <string name="reservation_created_successfully">Reservation created successfully</string>
-    <string name="reservation_creation_failed">Reservation creation failed</string>
-    <string name="reservation_modified_successfully">Reservation modified successfully</string>
-    <string name="reservation_modification_failed">Reservation modification failed</string>
-    <string name="profile_updated_successfully">Profile updated successfully</string>
-    <string name="profile_update_failed">Profile update failed</string>
-    <string name="error_user_already_exists">Error: user already exists</string>
-    <string name="error_creation_of_new_user_failed">Error: creation of new user failed</string>
-    <string name="username_or_password_not_correct">Username or password not correct</string>
 </resources>
