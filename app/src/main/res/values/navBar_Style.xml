@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="NavigationTheme" parent="Theme.CourtReservationApp">
+        <item name="android:textSize">540sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:layout_marginTop">5dp</item>
+    </style>
+</resources>

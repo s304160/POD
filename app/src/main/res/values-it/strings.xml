@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">My Application</string>
+    <string name="profileImage">Immagine del profilo</string>
+    <string name="fullName">Nome e Cognome</string>
+    <string name="nickName">Nickname</string>
+    <string name="objective">Obiettivo</string>
+    <string name="skillLevel">Abilità</string>
+    <string name="description">Descrizione</string>
+    <string name="age">Età</string>
+    <string name="yourReservations">Le Tue Prenotazioni</string>
+    <string name="cancel">Annulla</string>
+    <string name="ok">Ok</string>
+
+    <string name="additional_requests">Richieste Aggiuntive</string>
+    <string name="court">Campo</string>
+    <string name="time_slot">Orario</string>
+    <string name="date">Data</string>
+    <string name="no_bookings_found">Nessuna prenotazione</string>
+    <string name="modify">Modifica</string>
+    <string name="delete">ELIMINA</string>
+    <string name="modified">Prenotazione modificata</string>
+    <string name="deleted">Prenotazione cancellata</string>
+    <string name="thanks">Grazie!</string>
+
+    <string name="cancellationBookingDescription_part1">Stai cancellando il seguente appuntamento : </string>
+    <string name="cancellationBooking_button_back">Indietro</string>
+    <string name="cancellationBooking_button_confirm">Confermo</string>
+    <string name="rating_title">Lascia una Recensione</string>
+    <string name="insert_review">Commenti aggiuntivi (opzionale)</string>
+    <string name="rating_description_step1">Seleziona il campo</string>
+    <string name="rating_description_step2">Vota</string>
+    <string name="rating_description_step3">Altri Commenti</string>
+    <string name="profile_title">Profilo</string>
+    <string name="change_image">Modifica Foto</string>
+    <string name="favorite_sport">Sport Preferito</string>
+    <string name="achievements">Riconoscimenti</string>
+    <string name="select_image_from">Scegli da:</string>
+    <string name="camera">Fotocamera</string>
+    <string name="gallery">Galleria</string>
+    <string name="choose_a_date">Scegli una data</string>
+    <string name="do_you_want_to_confirm">Sei sicuro?</string>
+    <string name="none">Nessuna</string>
+
+    <string name="home">Home</string>
+    <string name="book_courts">Prenota</string>
+    <string name="rate_courts">Recensioni</string>
+    <string name="sign_in_with_onetap">Sign In con OneTap</string>
+    <string name="email">Email</string>
+    <string name="create_a_new_account">Crea un nuovo account</string>
+    <string name="loading">Caricamento…</string>
+    <string name="profile">Profilo</string>
+    <string name="sign_out">Esci</string>
+    <string name="create_account">Crea Account</string>
+    <string name="reservation_deleted_successfully">Prenotazione cancellata con successo</string>
+    <string name="reservation_deletion_failed">Prenotazione non cancellata</string>
+    <string name="reservation_created_successfully">Prenotazione creata con successo</string>
+    <string name="reservation_creation_failed">Prenotazione non creata</string>
+    <string name="reservation_modified_successfully">Prenotazione modificata con successo</string>
+    <string name="reservation_modification_failed">Prenotazione non modificata</string>
+    <string name="profile_updated_successfully">Profilo aggiornato</string>
+    <string name="profile_update_failed">Profilo non aggiornato</string>
+    <string name="error_user_already_exists">Errore: l\'utente esiste già</string>
+    <string name="error_creation_of_new_user_failed">Errore: creazione utente fallita</string>
+    <string name="username_or_password_not_correct">Email e/o password sbagliati</string>
+</resources>
